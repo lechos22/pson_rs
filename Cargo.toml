@@ -1,5 +1,5 @@
 [package]
-name = "pson_rs"
+name = "pson"
 version = "0.1.0"
 edition = "2021"
 
