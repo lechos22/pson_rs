@@ -73,14 +73,24 @@ impl PsonScanner<'_> {
         self.buffer.clear();
         Ok(())
     }
-    pub fn close_frame(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn close_frame(&mut self, brace: char) -> Result<(), Box<dyn Error>> {
         self.process_buffer()?;
         let mut frame = self.frame_stack.pop().ok_or("invalid pson")?;
         let top = self.frame_stack.last_mut().ok_or("invalid pson")?;
         match frame.kind {
-            FrameKind::Array => top.push(frame.to_array()?),
-            FrameKind::Map => top.push(frame.to_map()?),
-        }
+            FrameKind::Array =>
+                if brace != ']' {
+                    Err("invalid pson")?
+                } else {
+                    top.push(frame.to_array()?)
+                },
+            FrameKind::Map =>
+                if brace != ')' {
+                    Err("invalid pson")?
+                } else {
+                    top.push(frame.to_map()?)
+                },
+        };
         Ok(())
     }
     pub fn scan(&mut self) -> Result<(), Box<dyn Error>> {
@@ -88,7 +98,7 @@ impl PsonScanner<'_> {
             match c {
                 '[' => self.frame_stack.push(Frame::new(FrameKind::Array)),
                 '(' => self.frame_stack.push(Frame::new(FrameKind::Map)),
-                '<' => self.close_frame()?,
+                ']' | ')' => self.close_frame(c)?,
                 ' ' | '\t' | '\n' | '\r' => self.process_buffer()?,
                 '"' => self.scan_quoted_string()?,
                 _ => self.buffer.push(c)

@@ -13,7 +13,7 @@ fn basic_test() {
 
 #[test]
 fn types_test() {
-    let text = r#"N T F 1 1.0 "hello" [1 2 3< (a 1 b 2 c 3<"#;
+    let text = r#"N T F 1 1.0 "hello" [1 2 3] (a 1 b 2 c 3)"#;
     let mut scanner = PsonScanner::new(text.chars());
     scanner.scan().unwrap();
     let expr = scanner.get().unwrap();
