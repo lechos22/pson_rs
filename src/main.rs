@@ -25,6 +25,16 @@ enum Expr {
     Map(HashMap<String, Expr>),
 }
 
+impl Expr {
+    fn from(s: &String) -> Result<Self, Box<dyn Error>> {
+        if let Ok(n) = s.parse::<f64>() {
+            Ok(Expr::Number(n))
+        } else {
+            Ok(Expr::String(s.to_string()))
+        }
+    }
+}
+
 #[derive(Debug)]
 enum FrameKind {
     Array,
@@ -84,7 +94,7 @@ impl PsonScanner<'_> {
     fn process_buffer(&mut self) -> Result<(), Box<dyn Error>>{
         if !self.buf.is_empty() {
             let top = self.frame_stack.last_mut().ok_or("invalid pson")?;
-            top.push(Expr::String(self.buf.clone()));
+            top.push(Expr::from(&self.buf)?);
             self.buf.clear();
         }
         Ok(())
@@ -97,7 +107,9 @@ impl PsonScanner<'_> {
             }
             self.buf.push(c);
         }
-        self.process_buffer()?;
+        let top = self.frame_stack.last_mut().ok_or("invalid pson")?;
+        top.push(Expr::String(self.buf.clone()));
+        self.buf.clear();
         Ok(())
     }
     fn close_frame(&mut self) -> Result<(), Box<dyn Error>> {
