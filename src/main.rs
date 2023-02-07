@@ -19,6 +19,8 @@ impl CharContainer for String {
 #[allow(unused)]
 #[derive(Debug)]
 enum Expr {
+    Null(),
+    Boolean(bool),
     Number(f64),
     String(String),
     Array(Vec<Expr>),
@@ -27,7 +29,13 @@ enum Expr {
 
 impl Expr {
     fn from(s: &String) -> Result<Self, Box<dyn Error>> {
-        if let Ok(n) = s.parse::<f64>() {
+        if s == "N" {
+            Ok(Expr::Null())
+        } else if s == "T" {
+            Ok(Expr::Boolean(true))
+        } else if s == "F" {
+            Ok(Expr::Boolean(false))
+        } else if let Ok(n) = s.parse::<f64>() {
             Ok(Expr::Number(n))
         } else {
             Ok(Expr::String(s.to_string()))
