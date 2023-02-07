@@ -3,15 +3,6 @@ use std::collections::HashMap;
 use super::*;
 
 #[test]
-fn basic_test() {
-    let text = r#"hello world"#;
-    let mut scanner = PsonScanner::new(text.chars());
-    scanner.scan().unwrap();
-    let expr = scanner.get().unwrap();
-    assert_eq!(expr, Expr::Array(vec![Expr::String("hello".to_string()), Expr::String("world".to_string())]));
-}
-
-#[test]
 fn general_test() {
     let text = r#"
         N
@@ -23,6 +14,7 @@ fn general_test() {
         [1 2 3]
         (a 1 b 2 c 3)
         [1 [2 [3]]]
+        (a (b (c N)))
     "#;
     let mut scanner = PsonScanner::new(text.chars());
     scanner.scan().unwrap();
@@ -53,6 +45,13 @@ fn general_test() {
                 ]),
             ]),
         ]),
+        Expr::Map(vec![
+            ("a".to_string(), Expr::Map(vec![
+                ("b".to_string(), Expr::Map(vec![
+                    ("c".to_string(), Expr::Null()),
+                ].into_iter().collect::<HashMap<String, Expr>>())),
+            ].into_iter().collect::<HashMap<String, Expr>>())),
+        ].into_iter().collect::<HashMap<String, Expr>>()),
     ]));
 }
 
