@@ -122,7 +122,7 @@ impl Scanner<'_> {
         self.process_buffer()?;
         Ok(())
     }
-    fn get(&self) -> Result<Expr, Box<dyn Error>> {
+    fn get(&mut self) -> Result<Expr, Box<dyn Error>> {
         if self.frame_stack.len() != 1 {
             Err("invalid pson")?;
         }
@@ -136,5 +136,6 @@ impl Scanner<'_> {
 fn main() {
     let text = r#"(a (b (c "789"<<<"#;
     let mut scanner = Scanner::new(&text);
-    println!("{:?}", scanner.scan().unwrap());
+    scanner.scan().unwrap();
+    println!("{:?}", scanner.get().unwrap());
 }
