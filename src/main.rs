@@ -99,11 +99,40 @@ impl PsonScanner<'_> {
         }
         Ok(())
     }
+    fn read_hex_escape(&mut self) -> Result<(), Box<dyn Error>> {
+        let mut buf = String::new();
+        for _ in 0..2 {
+            if let Some(c) = self.it.next() {
+                buf.push(c);
+            } else {
+                Err("invalid pson")?;
+            }
+        }
+        let n = u8::from_str_radix(&buf, 16).map_err(|_| "invalid pson")?;
+        self.buf.push(n as char);
+        Ok(())
+    }
     fn scan_quoted_string(&mut self) -> Result<(), Box<dyn Error>>{
         self.process_buffer()?;
         while let Some(c) = self.it.next() {
-            if c == '"' {
-                break;
+            match c {
+                '"' => break,
+                '\\' => {
+                    if let Some(c) = self.it.next() {
+                        match c {
+                            'n' => self.buf.push('\n'),
+                            't' => self.buf.push('\t'),
+                            'r' => self.buf.push('\r'),
+                            '"' => self.buf.push('"'),
+                            '\\' => self.buf.push('\\'),
+                            'x' => self.read_hex_escape()?,
+                             _  => self.buf.push(c)
+                        }
+                    } else {
+                        Err("invalid pson")?;
+                    }
+                }
+                _ => self.buf.push(c)
             }
             self.buf.push(c);
         }
