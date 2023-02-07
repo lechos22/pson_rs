@@ -23,25 +23,25 @@ fn general_test() {
         Expr::Null(),
         Expr::Boolean(true),
         Expr::Boolean(false),
-        Expr::Number(1.0),
-        Expr::Number(1.0),
+        Expr::Integer(1),
+        Expr::Float(1.0),
         Expr::String("hello".to_string()),
         Expr::Array(vec![
-            Expr::Number(1.0),
-            Expr::Number(2.0),
-            Expr::Number(3.0),
+            Expr::Integer(1),
+            Expr::Integer(2),
+            Expr::Integer(3),
         ]),
         Expr::Map(vec![
-            ("a".to_string(), Expr::Number(1.0)),
-            ("b".to_string(), Expr::Number(2.0)),
-            ("c".to_string(), Expr::Number(3.0)),
+            ("a".to_string(), Expr::Integer(1)),
+            ("b".to_string(), Expr::Integer(2)),
+            ("c".to_string(), Expr::Integer(3)),
         ].into_iter().collect::<HashMap<String, Expr>>()),
         Expr::Array(vec![
-            Expr::Number(1.0),
+            Expr::Integer(1),
             Expr::Array(vec![
-                Expr::Number(2.0),
+                Expr::Integer(2),
                 Expr::Array(vec![
-                    Expr::Number(3.0),
+                    Expr::Integer(3),
                 ]),
             ]),
         ]),
@@ -70,7 +70,7 @@ fn long_array_test(){
     let mut scanner = PsonScanner::new(text.chars());
     scanner.scan().unwrap();
     let expr = scanner.get().unwrap();
-    assert_eq!(expr, Expr::Array(vec![Expr::Number(1.0); 100000]));
+    assert_eq!(expr, Expr::Array(vec![Expr::Integer(1); 100000]));
 }
 
 #[test]
@@ -84,7 +84,7 @@ fn long_map_test(){
     let expr = scanner.get().unwrap();
     let mut map = HashMap::new();
     for i in 0..100000 {
-        map.insert(format!("a{}", i), Expr::Number(1.0));
+        map.insert(format!("a{}", i), Expr::Integer(1));
     }
     assert_eq!(expr, Expr::Array(vec![Expr::Map(map)]));
 }
