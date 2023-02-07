@@ -16,7 +16,6 @@ impl CharContainer for String {
     }
 }
 
-#[allow(unused)]
 #[derive(Debug)]
 enum Expr {
     Null(),
