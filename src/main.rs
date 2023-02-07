@@ -107,8 +107,8 @@ impl PsonScanner<'_> {
         }
         Ok(())
     }
-    fn read_hex_escape(&mut self) -> Result<(), Box<dyn Error>> {
-        let mut buf = String::new();
+    fn read_hex_escape(&mut self, target: &mut String) -> Result<(), Box<dyn Error>> {
+        let mut buf = String::with_capacity(2);
         for _ in 0..2 {
             if let Some(c) = self.it.next() {
                 buf.push(c);
@@ -117,36 +117,35 @@ impl PsonScanner<'_> {
             }
         }
         let n = u8::from_str_radix(&buf, 16).map_err(|_| "invalid pson")?;
-        self.buf.push(n as char);
+        target.push(n as char);
         Ok(())
     }
     fn scan_quoted_string(&mut self) -> Result<(), Box<dyn Error>>{
         self.process_buffer()?;
+        let mut buf = String::new();
         while let Some(c) = self.it.next() {
             match c {
                 '"' => break,
                 '\\' => {
                     if let Some(c) = self.it.next() {
                         match c {
-                            'n' => self.buf.push('\n'),
-                            't' => self.buf.push('\t'),
-                            'r' => self.buf.push('\r'),
-                            '"' => self.buf.push('"'),
-                            '\\' => self.buf.push('\\'),
-                            'x' => self.read_hex_escape()?,
-                             _  => self.buf.push(c)
+                            'n' => buf.push('\n'),
+                            't' => buf.push('\t'),
+                            'r' => buf.push('\r'),
+                            '"' => buf.push('"'),
+                            '\\' => buf.push('\\'),
+                            'x' => self.read_hex_escape(&mut buf)?,
+                             _  => buf.push(c)
                         }
                     } else {
                         Err("invalid pson")?;
                     }
                 }
-                _ => self.buf.push(c)
+                _ => buf.push(c)
             }
-            self.buf.push(c);
         }
         let top = self.frame_stack.last_mut().ok_or("invalid pson")?;
-        top.push(Expr::String(self.buf.clone()));
-        self.buf.clear();
+        top.push(Expr::String(buf));
         Ok(())
     }
     fn close_frame(&mut self) -> Result<(), Box<dyn Error>> {
