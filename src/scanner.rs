@@ -1,111 +1,30 @@
-use std::{str::Chars, error::Error, collections::HashMap};
+use std::{str::Chars, error::Error};
 
-trait CharContainer {
-    fn chars_iter(&self) -> Chars<'_>;
-}
+use crate::expr::Expr;
+use crate::frame::{Frame, FrameKind};
 
-impl CharContainer for &str {
-    fn chars_iter(&self) -> Chars<'_> {
-        self.chars()
-    }
-}
-
-impl CharContainer for String {
-    fn chars_iter(&self) -> Chars<'_> {
-        self.chars()
-    }
-}
-
-#[derive(Debug)]
-enum Expr {
-    Null(),
-    Boolean(bool),
-    Number(f64),
-    String(String),
-    Array(Vec<Expr>),
-    Map(HashMap<String, Expr>),
-}
-
-impl Expr {
-    fn from(s: &String) -> Result<Self, Box<dyn Error>> {
-        if s == "N" {
-            Ok(Expr::Null())
-        } else if s == "T" {
-            Ok(Expr::Boolean(true))
-        } else if s == "F" {
-            Ok(Expr::Boolean(false))
-        } else if let Ok(n) = s.parse::<f64>() {
-            Ok(Expr::Number(n))
-        } else {
-            Ok(Expr::String(s.to_string()))
-        }
-    }
-}
-
-#[derive(Debug)]
-enum FrameKind {
-    Array,
-    Map,
-}
-
-#[derive(Debug)]
-struct Frame {
-    exprs: Vec<Expr>,
-    kind: FrameKind
-}
-
-impl Frame {
-    fn new(kind: FrameKind) -> Self {
-        Self{
-            exprs: Vec::new(),
-            kind
-        }
-    }
-    fn push(self: &mut Frame, expr: Expr) {
-        self.exprs.push(expr);
-    }
-    fn to_array(self: Frame) -> Result<Expr, Box<dyn Error>> {
-        Ok(Expr::Array(self.exprs))
-    }
-    fn to_map(self: &mut Frame) -> Result<Expr, Box<dyn Error>> {
-        let mut map: HashMap<String, Expr> = HashMap::new();
-        while let Some(value) = self.exprs.pop() {
-            if let Some(key) = self.exprs.pop() {
-                let key_str = match key {
-                    Expr::String(s) => s,
-                    _ => Err("invalid map")?,
-                };
-                map.insert(key_str, value);
-            } else {
-                Err("invalid map")?;
-            }
-        }
-        Ok(Expr::Map(map))
-    }
-}
-
-struct PsonScanner<'a> {
+pub struct PsonScanner<'a> {
     frame_stack: Vec<Frame>,
     buffer: String,
     it: Chars<'a>,
 }
 
 impl PsonScanner<'_> {
-    fn new<'a>(text: &'a impl CharContainer) -> PsonScanner<'a> {
+    pub fn new<'a>(text: Chars<'a>) -> PsonScanner<'a> {
         PsonScanner {
             frame_stack: vec![Frame::new(FrameKind::Array)],
             buffer: String::new(),
-            it: text.chars_iter()
+            it: text
         }
     }
-    fn with_buffer_capacity<'a>(text: &'a impl CharContainer, capacity: usize) -> PsonScanner<'a> {
+    pub fn with_buffer_capacity<'a>(text: Chars<'a>, capacity: usize) -> PsonScanner<'a> {
         PsonScanner {
             frame_stack: vec![Frame::new(FrameKind::Array)],
             buffer: String::with_capacity(capacity),
-            it: text.chars_iter()
+            it: text
         }
     }
-    fn process_buffer(&mut self) -> Result<(), Box<dyn Error>>{
+    pub fn process_buffer(&mut self) -> Result<(), Box<dyn Error>>{
         if !self.buffer.is_empty() {
             let top = self.frame_stack.last_mut().ok_or("invalid pson")?;
             top.push(Expr::from(&self.buffer)?);
@@ -113,7 +32,7 @@ impl PsonScanner<'_> {
         }
         Ok(())
     }
-    fn read_hex_escape(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn read_hex_escape(&mut self) -> Result<(), Box<dyn Error>> {
         let mut buf = String::with_capacity(2);
         for _ in 0..2 {
             if let Some(c) = self.it.next() {
@@ -126,7 +45,7 @@ impl PsonScanner<'_> {
         self.buffer.push(n as char);
         Ok(())
     }
-    fn scan_quoted_string(&mut self) -> Result<(), Box<dyn Error>>{
+    pub fn scan_quoted_string(&mut self) -> Result<(), Box<dyn Error>>{
         self.process_buffer()?;
         while let Some(c) = self.it.next() {
             match c {
@@ -154,7 +73,7 @@ impl PsonScanner<'_> {
         self.buffer.clear();
         Ok(())
     }
-    fn close_frame(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn close_frame(&mut self) -> Result<(), Box<dyn Error>> {
         self.process_buffer()?;
         let mut frame = self.frame_stack.pop().ok_or("invalid pson")?;
         let top = self.frame_stack.last_mut().ok_or("invalid pson")?;
@@ -164,7 +83,7 @@ impl PsonScanner<'_> {
         }
         Ok(())
     }
-    fn scan(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn scan(&mut self) -> Result<(), Box<dyn Error>> {
         while let Some(c) = self.it.next() {
             match c {
                 '[' => self.frame_stack.push(Frame::new(FrameKind::Array)),
@@ -178,7 +97,7 @@ impl PsonScanner<'_> {
         self.process_buffer()?;
         Ok(())
     }
-    fn get(&mut self) -> Result<Expr, Box<dyn Error>> {
+    pub fn get(&mut self) -> Result<Expr, Box<dyn Error>> {
         if self.frame_stack.len() != 1 {
             Err("invalid pson")?;
         }
@@ -186,13 +105,4 @@ impl PsonScanner<'_> {
         let expr = top.to_array()?;
         Ok(expr)
     }
-}
-
-
-fn main() {
-    let mut input_buffer = String::new();
-    std::io::stdin().read_line(&mut input_buffer).unwrap();
-    let mut scanner = PsonScanner::new(&input_buffer);
-    scanner.scan().unwrap();
-    println!("{:?}", scanner.get().unwrap());
 }
