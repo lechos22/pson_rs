@@ -72,3 +72,19 @@ fn long_array_test(){
     let expr = scanner.get().unwrap();
     assert_eq!(expr, Expr::Array(vec![Expr::Number(1.0); 100000]));
 }
+
+#[test]
+fn long_map_test(){
+    let mut text = String::with_capacity(111111 * 4);
+    text.push('(');
+    text.push_str((0..100000).map(|i| format!("a{} 1 ", i)).collect::<String>().as_str());
+    text.push(')');
+    let mut scanner = PsonScanner::new(text.chars());
+    scanner.scan().unwrap();
+    let expr = scanner.get().unwrap();
+    let mut map = HashMap::new();
+    for i in 0..100000 {
+        map.insert(format!("a{}", i), Expr::Number(1.0));
+    }
+    assert_eq!(expr, Expr::Array(vec![Expr::Map(map)]));
+}
