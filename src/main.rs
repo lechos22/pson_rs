@@ -86,7 +86,7 @@ impl Frame {
 
 struct PsonScanner<'a> {
     frame_stack: Vec<Frame>,
-    buf: String,
+    buffer: String,
     it: Chars<'a>,
 }
 
@@ -94,19 +94,26 @@ impl PsonScanner<'_> {
     fn new<'a>(text: &'a impl CharContainer) -> PsonScanner<'a> {
         PsonScanner {
             frame_stack: vec![Frame::new(FrameKind::Array)],
-            buf: String::new(),
+            buffer: String::new(),
+            it: text.chars_iter()
+        }
+    }
+    fn with_buffer_capacity<'a>(text: &'a impl CharContainer, capacity: usize) -> PsonScanner<'a> {
+        PsonScanner {
+            frame_stack: vec![Frame::new(FrameKind::Array)],
+            buffer: String::with_capacity(capacity),
             it: text.chars_iter()
         }
     }
     fn process_buffer(&mut self) -> Result<(), Box<dyn Error>>{
-        if !self.buf.is_empty() {
+        if !self.buffer.is_empty() {
             let top = self.frame_stack.last_mut().ok_or("invalid pson")?;
-            top.push(Expr::from(&self.buf)?);
-            self.buf.clear();
+            top.push(Expr::from(&self.buffer)?);
+            self.buffer.clear();
         }
         Ok(())
     }
-    fn read_hex_escape(&mut self, target: &mut String) -> Result<(), Box<dyn Error>> {
+    fn read_hex_escape(&mut self) -> Result<(), Box<dyn Error>> {
         let mut buf = String::with_capacity(2);
         for _ in 0..2 {
             if let Some(c) = self.it.next() {
@@ -116,35 +123,35 @@ impl PsonScanner<'_> {
             }
         }
         let n = u8::from_str_radix(&buf, 16).map_err(|_| "invalid pson")?;
-        target.push(n as char);
+        self.buffer.push(n as char);
         Ok(())
     }
     fn scan_quoted_string(&mut self) -> Result<(), Box<dyn Error>>{
         self.process_buffer()?;
-        let mut buf = String::new();
         while let Some(c) = self.it.next() {
             match c {
                 '"' => break,
                 '\\' => {
                     if let Some(c) = self.it.next() {
                         match c {
-                            'n' => buf.push('\n'),
-                            't' => buf.push('\t'),
-                            'r' => buf.push('\r'),
-                            '"' => buf.push('"'),
-                            '\\' => buf.push('\\'),
-                            'x' => self.read_hex_escape(&mut buf)?,
-                             _  => buf.push(c)
+                            'n' => self.buffer.push('\n'),
+                            't' => self.buffer.push('\t'),
+                            'r' => self.buffer.push('\r'),
+                            '"' => self.buffer.push('"'),
+                            '\\' => self.buffer.push('\\'),
+                            'x' => self.read_hex_escape()?,
+                             _  => self.buffer.push(c)
                         }
                     } else {
                         Err("invalid pson")?;
                     }
                 }
-                _ => buf.push(c)
+                _ => self.buffer.push(c)
             }
         }
         let top = self.frame_stack.last_mut().ok_or("invalid pson")?;
-        top.push(Expr::String(buf));
+        top.push(Expr::String(self.buffer.clone()));
+        self.buffer.clear();
         Ok(())
     }
     fn close_frame(&mut self) -> Result<(), Box<dyn Error>> {
@@ -165,7 +172,7 @@ impl PsonScanner<'_> {
                 '<' => self.close_frame()?,
                 ' ' | '\t' | '\n' | '\r' => self.process_buffer()?,
                 '"' => self.scan_quoted_string()?,
-                _ => self.buf.push(c)
+                _ => self.buffer.push(c)
             }
         };
         self.process_buffer()?;
