@@ -67,15 +67,15 @@ impl Frame {
     }
 }
 
-struct Scanner<'a> {
+struct PsonScanner<'a> {
     frame_stack: Vec<Frame>,
     buf: String,
     it: Chars<'a>,
 }
 
-impl Scanner<'_> {
-    fn new<'a>(text: &'a impl CharContainer) -> Scanner<'a> {
-        Scanner {
+impl PsonScanner<'_> {
+    fn new<'a>(text: &'a impl CharContainer) -> PsonScanner<'a> {
+        PsonScanner {
             frame_stack: vec![Frame::new(FrameKind::Array)],
             buf: String::new(),
             it: text.chars_iter()
@@ -90,6 +90,7 @@ impl Scanner<'_> {
         Ok(())
     }
     fn scan_quoted_string(&mut self) -> Result<(), Box<dyn Error>>{
+        self.process_buffer()?;
         while let Some(c) = self.it.next() {
             if c == '"' {
                 break;
@@ -100,6 +101,7 @@ impl Scanner<'_> {
         Ok(())
     }
     fn close_frame(&mut self) -> Result<(), Box<dyn Error>> {
+        self.process_buffer()?;
         let mut frame = self.frame_stack.pop().ok_or("invalid pson")?;
         let top = self.frame_stack.last_mut().ok_or("invalid pson")?;
         match frame.kind {
@@ -134,8 +136,9 @@ impl Scanner<'_> {
 
 
 fn main() {
-    let text = r#"(a (b (c "789"<<<"#;
-    let mut scanner = Scanner::new(&text);
+    let mut input_buffer = String::new();
+    std::io::stdin().read_line(&mut input_buffer).unwrap();
+    let mut scanner = PsonScanner::new(&input_buffer);
     scanner.scan().unwrap();
     println!("{:?}", scanner.get().unwrap());
 }
