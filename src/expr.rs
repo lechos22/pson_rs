@@ -39,3 +39,16 @@ impl PartialEq for Expr {
         }
     }
 }
+
+impl Clone for Expr {
+    fn clone(&self) -> Self {
+        match self {
+            Expr::Null() => Expr::Null(),
+            Expr::Boolean(b) => Expr::Boolean(*b),
+            Expr::Number(n) => Expr::Number(*n),
+            Expr::String(s) => Expr::String(s.to_string()),
+            Expr::Array(a) => Expr::Array(a.clone()),
+            Expr::Map(m) => Expr::Map(m.clone()),
+        }
+    }
+}
