@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use super::*;
+use pson_schema::pson_schema;
 
 #[test]
 fn general_test() {
@@ -87,4 +88,11 @@ fn long_map_test(){
         map.insert(format!("a{}", i), Expr::Integer(1));
     }
     assert_eq!(expr, Expr::Array(vec![Expr::Map(map)]));
+}
+
+#[test]
+fn schema_test(){
+    pson_schema!{
+        Pizza string
+    }
 }
