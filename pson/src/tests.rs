@@ -93,9 +93,10 @@ fn long_map_test(){
 #[test]
 fn schema_test(){
     pson_schemas!{
-        Pizza [map (name string)]
+        PizzaDto [map (
+            name string
+            price float
+            toppings [array string]
+        )]
     }
-    let pizza = Pizza{
-        name: "pizza".to_string(),
-    };
 }
