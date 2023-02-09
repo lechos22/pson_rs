@@ -1,54 +1,80 @@
-use std::{hash::{Hash, Hasher}, collections::HashMap, error::Error, sync::Mutex};
+use std::collections::HashMap;
 
 use proc_macro::{TokenStream, TokenTree};
 
+struct Pairs<T>{
+    iter: Box<dyn Iterator<Item = T>>
+}
+
+impl Iterator<> for Pairs<TokenTree>{
+    type Item = (TokenTree, TokenTree);
+    fn next(&mut self) -> Option<Self::Item> {
+        match (self.iter.next(), self.iter.next()) {
+            (Some(a), Some(b)) => Some((a, b)),
+            (Some(_), None) => panic!(),
+            _ => None,
+        }
+    }
+}
+
+struct PsonDef{
+    name: String,
+    body: Option<String>,
+}
+
+impl PsonDef{
+    fn primitive(name: String) -> PsonDef {
+        PsonDef{
+            name,
+            body: None
+        }
+    }
+}
+
 #[proc_macro]
 pub fn pson_schema(input: TokenStream) -> TokenStream {
-    let mut iter = input.into_iter();
-    let mut schema: HashMap<String, Box<dyn ToString>> = HashMap::new();
+    let iter = Pairs{iter: Box::new(input.into_iter())}; 
     let mut lookup: HashMap<String, String> = HashMap::new(); // this lookup table is going to be used to map the name of the struct to its body
-    while let (Some(key), value) = (iter.next(), iter.next()) {
+    let schema: HashMap<String, PsonDef> = iter.map(|(key, value)|{
         if let TokenTree::Ident(name) = key {
-            if schema.contains_key(&name.to_string()) {
-                panic!("Duplicate key");
-            }
-            match value {
-                Some(TokenTree::Group(pson_object)) => {
-                    todo!("Implement object parsing")
-                },
-                Some(TokenTree::Ident(pson_primitive)) => {
-                    match pson_primitive.to_string().as_str() {
-                        "string" => {
-                            schema.insert(name.to_string(), Box::new("String"));
-                        }
-                        "unsgn" => {
-                            schema.insert(name.to_string(), Box::new("u64"));
-                        }
-                        "int" => {
-                            schema.insert(name.to_string(), Box::new("i64"));
-                        }
-                        "float" => {
-                            schema.insert(name.to_string(), Box::new("f64"));
-                        }
-                        "bool" => {
-                            schema.insert(name.to_string(), Box::new("bool"));
-                        }
-                        _ => {
-                            panic!("Unknown primitive type");
-                        }
-                    }
-                },
-                None => panic!("Did not find a type for key {}", name.to_string()),
-                _ => panic!("Unrecognized token"),
-            }
+            (name, value)
         } else {
             panic!("Key must be an identifier");
         }
-    }
+    }).map(|(name, value)|{
+        match value {
+            TokenTree::Group(_pson_object) => {
+                todo!("Implement object parsing")
+            },
+            TokenTree::Ident(pson_primitive) => {
+                match pson_primitive.to_string().as_str() {
+                    "string" => {
+                        (name.to_string(), PsonDef::primitive("String".to_string()))
+                    }
+                    "unsgn" => {
+                        (name.to_string(), PsonDef::primitive("u64".to_string()))
+                    }
+                    "int" => {
+                        (name.to_string(), PsonDef::primitive("i64".to_string()))
+                    }
+                    "float" => {
+                        (name.to_string(), PsonDef::primitive("f64".to_string()))
+                    }
+                    "bool" => {
+                        (name.to_string(), PsonDef::primitive("bool".to_string()))
+                    }
+                    _ => {
+                        panic!("Unknown primitive type");
+                    }
+                }
+            },
+            _ => panic!("Unrecognized token"),
+        }
+    }).collect();
     return schema
         .iter()
         .map(|(name, object)|{
-            format!("type {} = {};", name, object.to_string())
+            format!("type {} = {};", name, object.name)
         })
         .collect::<String>()
         .parse()
