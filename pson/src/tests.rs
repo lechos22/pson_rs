@@ -93,10 +93,13 @@ fn long_map_test(){
 #[test]
 fn schema_test(){
     pson_schemas!{
-        PizzaDto [map (
+        SizeDto [map (
             name string
             price float
-            toppings [array string]
+        )]
+        PizzaDto [map (
+            name string
+            sizes [array _SizeDto]
         )]
     }
 }
