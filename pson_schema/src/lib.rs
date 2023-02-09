@@ -119,7 +119,7 @@ fn pson_struct_tuple(token_trees: Vec<TokenTree>) -> PsonDef {
         },
         "array" | "option" => single_typed(kind_str, token_trees[1].clone()),
         "tuple" => todo!(),
-        _ => panic!("Struct type must be one of map, array, or tuple")
+        _ => panic!("Struct type must be one of map, array, option or tuple")
     }
 }
 
