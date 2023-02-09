@@ -101,5 +101,9 @@ fn schema_test(){
             name string
             sizes [array _SizeDto]
         )]
+        PizzaPairDto [tuple [
+            _PizzaDto
+            _PizzaDto
+        ]]
     }
 }
