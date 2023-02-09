@@ -94,8 +94,8 @@ fn pson_struct_tuple(token_trees: Vec<TokenTree>) -> PsonDef {
             children.push(value);
         });
         let name = format!("Pson{}", hasher.finish());
-        let body = format!("struct {} {{{}}}", name, children_names.into_iter().zip((&children).into_iter())
-            .map(|(name, child)|format!("{}: {}", name.to_string(), child.name))
+        let body = format!("struct {}{{{}}}", name, children_names.into_iter().zip((&children).into_iter())
+            .map(|(name, child)|format!("{}:{}", name.to_string(), child.name))
             .collect::<Vec<_>>()
             .join(",")
         );
