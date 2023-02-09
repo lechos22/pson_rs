@@ -83,17 +83,20 @@ fn pson_struct_tuple(token_trees: Vec<TokenTree>) -> PsonDef {
         let mut hasher = DefaultHasher::new();
         "map".hash(&mut hasher);
         kind.hash(&mut hasher);
-        let mut children_names: Vec<String> = vec![];
-        let mut children: Vec<PsonDef> = vec![];
-        let body_inner = pairs.map(|(key, value)|{
-            key.to_string().hash(&mut hasher);
-            let value = parse_pson_schema(value);
-            value.name.hash(&mut hasher);
-            children_names.push(key.to_string());
-            let code = format!("{}:{}", key.to_string(), value.name);
-            children.push(value);
-            code
-        }).fold(String::new(), |acc, code| acc + &code + ",");
+        let mut children = Vec::<PsonDef>::new();
+        let body_inner = pairs
+            .map(|(key, value)|{
+                key.to_string().hash(&mut hasher);
+                let value = parse_pson_schema(value);
+                value.name.hash(&mut hasher);
+                let code = format!("{}:{}", key.to_string(), value.name);
+                (value, code)
+            })
+            .fold(
+                String::new(),
+                |body_builder, (child, code)|
+                {children.push(child); body_builder + &code + ","} // this is still bad, I should find another way to do this
+            );
         let name = format!("Pson{}", hasher.finish());
         let body = format!("struct {}{{{}}}", name.clone(), body_inner);
         PsonDef{
