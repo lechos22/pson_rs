@@ -75,7 +75,7 @@ fn pson_struct_tuple(token_trees: Vec<TokenTree>) -> PsonDef {
         let name = format!("Pson{}", hasher.finish());
         PsonDef{
             name: name.clone(),
-            body: Some(format!("type {} = Vec<{}>;", name.clone(), body.name)),
+            body: Some(format!("type {}=Vec<{}>;", name.clone(), body.name)),
             children: Some(vec![body])
         }
     }
@@ -161,7 +161,7 @@ pub fn pson_schemas(input: TokenStream) -> TokenStream {
     let iter_base = schema
         .iter()
         .map(|(name, object)|{
-            format!("type {} = {};", name, object.name)
+            format!("type {}={};", name, object.name)
         });
     let iter_bodies = schema
         .iter()
