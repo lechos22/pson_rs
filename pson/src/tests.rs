@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::*;
-use pson_schema::pson_schema;
+use pson_schema::pson_schemas;
 
 #[test]
 fn general_test() {
@@ -92,7 +92,10 @@ fn long_map_test(){
 
 #[test]
 fn schema_test(){
-    pson_schema!{
-        Pizza string
+    pson_schemas!{
+        Pizza [map (name string)]
     }
+    let pizza = Pizza{
+        name: "pizza".to_string(),
+    };
 }
