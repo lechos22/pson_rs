@@ -53,6 +53,7 @@ fn pson_primitive(name: &str) -> PsonDef {
         "float" => "f64".to_string(),
         "bool" => "bool".to_string(),
         "null" => "()".to_string(),
+        tag if(tag.starts_with(":")) => name[1..].to_string(),
         _ => panic!("Unrecognized primitive type: {}", name)
     })
 }
