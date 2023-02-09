@@ -84,6 +84,7 @@ fn pson_struct_tuple(token_trees: Vec<TokenTree>) -> PsonDef {
         kind.hash(&mut hasher);
         let mut children_names: Vec<String> = vec![];
         let mut children: Vec<PsonDef> = vec![];
+        // todo: change to reduce that builds the body string
         pairs.for_each(|(key, value)|{
             key.to_string().hash(&mut hasher);
             let value = parse_pson_schema(value);
@@ -92,10 +93,10 @@ fn pson_struct_tuple(token_trees: Vec<TokenTree>) -> PsonDef {
             children.push(value);
         });
         let name = format!("Pson{}", hasher.finish());
-        let body = format!("struct {} {{\n{}\n}}", name, children_names.into_iter().zip((&children).into_iter())
+        let body = format!("struct {} {{{}}}", name, children_names.into_iter().zip((&children).into_iter())
             .map(|(name, child)|format!("{}: {}", name.to_string(), child.name))
             .collect::<Vec<_>>()
-            .join(",\n")
+            .join(",")
         );
         PsonDef{
             name: name.clone(),
