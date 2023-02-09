@@ -82,10 +82,9 @@ fn pson_struct_tuple(token_trees: Vec<TokenTree>) -> PsonDef {
             children: Some(vec![body]),
         }
     }
-    fn map(kind: &str, pairs: Pairs<TokenTree>) -> PsonDef {
+    fn map(pairs: Pairs<TokenTree>) -> PsonDef {
         let mut hasher = DefaultHasher::new();
         "map".hash(&mut hasher);
-        kind.hash(&mut hasher);
         let mut children = Vec::<PsonDef>::new();
         let body_inner = pairs
             .map(|(key, value)| {
@@ -110,6 +109,32 @@ fn pson_struct_tuple(token_trees: Vec<TokenTree>) -> PsonDef {
             children: Some(children),
         }
     }
+    fn tuple(iter: impl Iterator<Item = TokenTree>) -> PsonDef {
+        let mut hasher = DefaultHasher::new();
+        "tuple".hash(&mut hasher);
+        let mut children = Vec::<PsonDef>::new();
+        let body_inner = iter
+            .map(|value| {
+                let value = parse_pson_schema(value);
+                value.name.hash(&mut hasher);
+                let name = value.name.clone();
+                (value, name)
+            })
+            .fold(
+                String::new(),
+                |body_builder, (child, code)| {
+                    children.push(child);
+                    body_builder + &code + ","
+                }, // this is still bad, I should find another way to do this
+            );
+        let name = format!("Pson{}", hasher.finish());
+        let body = format!("type {}=({});", name.clone(), body_inner);
+        PsonDef {
+            name: name.clone(),
+            body: Some(body),
+            children: Some(children),
+        }
+    }
     match kind_str {
         "map" => {
             let pairs = match &token_trees[1] {
@@ -123,10 +148,21 @@ fn pson_struct_tuple(token_trees: Vec<TokenTree>) -> PsonDef {
                 }
                 _ => panic!("Map body must be a parenthesized list of key-value pairs"),
             };
-            map(kind_str, pairs)
+            map(pairs)
         }
         "array" | "option" => single_typed(kind_str, token_trees[1].clone()),
-        "tuple" => todo!(),
+        "tuple" => {
+            let iter = match &token_trees[1] {
+                TokenTree::Group(group) => {
+                    if group.delimiter() != Delimiter::Bracket {
+                        panic!("Tuple body must be a parenthesized list of types in tuple")
+                    }
+                    Box::from(group.stream().into_iter())
+                }
+                _ => panic!("Map body must be a parenthesized list of types in tuple"),
+            };
+            tuple(iter)
+        },
         _ => panic!("Struct type must be one of map, array, option or tuple"),
     }
 }
