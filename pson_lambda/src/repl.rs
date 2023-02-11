@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, io::{self, Write}};
 
 use pson::Expr;
 
@@ -102,6 +102,8 @@ pub fn repl(){
     println!("Welcome to PSON lambda version {}!", env!("CARGO_PKG_VERSION"));
     println!("Type '\\help' for help.");
     println!("Type '\\exit' to exit.");
+    print!("> ");
+    std::io::stdout().flush().unwrap();
     std::io::stdin()
         .lines()
         .map(|line| line.ok())
@@ -127,10 +129,15 @@ pub fn repl(){
                     }
                     else if line == "\\help" {
                         println!("Type '\\exit' to exit.");
+                        print!("> ");
+                        std::io::stdout().flush().unwrap();
                         repl
                     }
                     else {
-                        eval(&repl).unwrap() // TODO: Handle errors
+                        let new_repl = eval(&repl).unwrap(); // TODO: Handle errors
+                        print!("> ");
+                        std::io::stdout().flush().unwrap();
+                        new_repl
                     }
                 }
                 else {
