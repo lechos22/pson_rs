@@ -24,7 +24,7 @@ impl PsonParser<'_> {
             it: text
         }
     }
-    pub fn process_buffer(&mut self) -> Result<(), Box<dyn Error>>{
+    pub(crate) fn process_buffer(&mut self) -> Result<(), Box<dyn Error>>{
         if !self.buffer.is_empty() {
             let top = self.frame_stack.last_mut().ok_or("invalid pson")?;
             top.push(Expr::from(&self.buffer)?);
@@ -32,7 +32,7 @@ impl PsonParser<'_> {
         }
         Ok(())
     }
-    pub fn read_hex_escape(&mut self) -> Result<(), Box<dyn Error>> {
+    pub(crate) fn read_hex_escape(&mut self) -> Result<(), Box<dyn Error>> {
         let mut buf = String::with_capacity(2);
         for _ in 0..2 {
             if let Some(c) = self.it.next() {
@@ -45,7 +45,7 @@ impl PsonParser<'_> {
         self.buffer.push(n as char);
         Ok(())
     }
-    pub fn scan_quoted_string(&mut self) -> Result<(), Box<dyn Error>>{
+    pub(crate) fn scan_quoted_string(&mut self) -> Result<(), Box<dyn Error>>{
         self.process_buffer()?;
         while let Some(c) = self.it.next() {
             match c {
@@ -73,7 +73,7 @@ impl PsonParser<'_> {
         self.buffer.clear();
         Ok(())
     }
-    pub fn close_frame(&mut self, brace: char) -> Result<(), Box<dyn Error>> {
+    pub(crate) fn close_frame(&mut self, brace: char) -> Result<(), Box<dyn Error>> {
         self.process_buffer()?;
         let mut frame = self.frame_stack.pop().ok_or("invalid pson")?;
         let top = self.frame_stack.last_mut().ok_or("invalid pson")?;
