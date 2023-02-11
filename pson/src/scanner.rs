@@ -93,7 +93,7 @@ impl PsonParser<'_> {
         };
         Ok(())
     }
-    pub fn scan(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn parse(&mut self) -> Result<(), Box<dyn Error>> {
         while let Some(c) = self.it.next() {
             match c {
                 '[' => self.frame_stack.push(Frame::new(FrameKind::Array)),

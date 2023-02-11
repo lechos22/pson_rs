@@ -18,7 +18,7 @@ fn general_test() {
         (a (b (c N)))
     "#;
     let mut scanner = PsonParser::new(text.chars());
-    scanner.scan().unwrap();
+    scanner.parse().unwrap();
     let expr = scanner.get().unwrap();
     assert_eq!(expr, Expr::Array(vec![
         Expr::Null(),
@@ -60,7 +60,7 @@ fn general_test() {
 fn long_string_test(){
     let text: String = (0..100000).map(|_| "a").collect();
     let mut scanner = PsonParser::new(text.chars());
-    scanner.scan().unwrap();
+    scanner.parse().unwrap();
     let expr = scanner.get().unwrap();
     assert_eq!(expr, Expr::Array(vec![Expr::String(text)]));
 }
@@ -69,7 +69,7 @@ fn long_string_test(){
 fn long_array_test(){
     let text: String = (0..100000).map(|_| "1 ").collect();
     let mut scanner = PsonParser::new(text.chars());
-    scanner.scan().unwrap();
+    scanner.parse().unwrap();
     let expr = scanner.get().unwrap();
     assert_eq!(expr, Expr::Array(vec![Expr::Integer(1); 100000]));
 }
@@ -81,7 +81,7 @@ fn long_map_test(){
     text.push_str((0..100000).map(|i| format!("a{} 1 ", i)).collect::<String>().as_str());
     text.push(')');
     let mut scanner = PsonParser::new(text.chars());
-    scanner.scan().unwrap();
+    scanner.parse().unwrap();
     let expr = scanner.get().unwrap();
     let mut map = HashMap::new();
     for i in 0..100000 {
