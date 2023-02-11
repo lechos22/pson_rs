@@ -3,22 +3,22 @@ use std::{str::Chars, error::Error};
 use crate::expr::Expr;
 use crate::frame::{Frame, FrameKind};
 
-pub struct PsonScanner<'a> {
+pub struct PsonParser<'a> {
     frame_stack: Vec<Frame>,
     buffer: String,
     it: Chars<'a>,
 }
 
-impl PsonScanner<'_> {
-    pub fn new<'a>(text: Chars<'a>) -> PsonScanner<'a> {
-        PsonScanner {
+impl PsonParser<'_> {
+    pub fn new<'a>(text: Chars<'a>) -> PsonParser<'a> {
+        PsonParser {
             frame_stack: vec![Frame::new(FrameKind::Array)],
             buffer: String::new(),
             it: text
         }
     }
-    pub fn with_buffer_capacity<'a>(text: Chars<'a>, capacity: usize) -> PsonScanner<'a> {
-        PsonScanner {
+    pub fn with_buffer_capacity<'a>(text: Chars<'a>, capacity: usize) -> PsonParser<'a> {
+        PsonParser {
             frame_stack: vec![Frame::new(FrameKind::Array)],
             buffer: String::with_capacity(capacity),
             it: text
