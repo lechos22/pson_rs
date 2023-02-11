@@ -59,5 +59,12 @@ pub fn parse_args(args: &mut impl Iterator<Item = String>) -> Result<ArgConfig, 
                 }
             }
         })
-        .map(|(config, _)| config)
+        .and_then(|(config, next_arg)| {
+            if next_arg.is_some() {
+                Err("Missing argument".to_string())
+            }
+            else {
+                Ok(config)
+            }
+        })
 }
