@@ -103,6 +103,36 @@ fn eval(old_repl: &Repl) -> Result<Repl, Box<dyn Error>> {
     }
 }
 
+fn process_one_line(old_repl: Repl, line: String) -> Repl {
+    let mut repl = old_repl.clone();
+    repl.interpret_locks = repl.interpret_locks.update(&line);
+    if repl.interpret_locks.is_locked() {
+        repl.input_buffer.push_str(&line);
+    }
+    if !repl.interpret_locks.is_locked() {
+        if line == "\\exit" {
+            println!("Goodbye!");
+            std::process::exit(0)
+        }
+        else if line == "\\help" {
+            println!("Type '\\exit' to exit.");
+            print!("> ");
+            std::io::stdout().flush().unwrap();
+            repl
+        }
+        else {
+            repl.input_buffer.push_str(&line);
+            let new_repl = eval(&repl).unwrap(); // TODO: Handle errors
+            print!("> ");
+            std::io::stdout().flush().unwrap();
+            new_repl
+        }
+    }
+    else {
+        repl
+    }
+}
+
 pub fn repl(){
     println!("Welcome to PSON lambda version {}!", env!("CARGO_PKG_VERSION"));
     println!("Type '\\help' for help.");
@@ -119,36 +149,5 @@ pub fn repl(){
                 .unwrap_or(true)
         )
         .filter_map(|line| line)
-        .fold(
-            Repl::new(),
-            |old_repl, line| {
-                let mut repl = old_repl.clone();
-                repl.interpret_locks = repl.interpret_locks.update(&line);
-                if repl.interpret_locks.is_locked() {
-                    repl.input_buffer.push_str(&line);
-                }
-                if !repl.interpret_locks.is_locked() {
-                    if line == "\\exit" {
-                        println!("Goodbye!");
-                        std::process::exit(0)
-                    }
-                    else if line == "\\help" {
-                        println!("Type '\\exit' to exit.");
-                        print!("> ");
-                        std::io::stdout().flush().unwrap();
-                        repl
-                    }
-                    else {
-                        repl.input_buffer.push_str(&line);
-                        let new_repl = eval(&repl).unwrap(); // TODO: Handle errors
-                        print!("> ");
-                        std::io::stdout().flush().unwrap();
-                        new_repl
-                    }
-                }
-                else {
-                    repl
-                }
-            }
-        );
+        .fold(Repl::new(), process_one_line);
 }
