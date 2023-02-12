@@ -6,8 +6,7 @@
 ]]
 
 [$ factorial_iteration [fn N [x]
-    [pipe
-        [range 1 [+ x 1]]
+    [pipe [range 1 [+ x 1]]
         [fn N [iter] [fold iter 1 *]]
     ]
 ]]
