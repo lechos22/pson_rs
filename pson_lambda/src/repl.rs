@@ -98,7 +98,8 @@ fn eval(old_repl: &Repl) -> Result<Repl, Box<dyn Error>> {
     if exprs.len() == 0 {
         Ok(repl)
     } else {
-        todo!("evalute exprs");
+        eprintln!("TODO: evalute exprs");
+        Ok(repl)
     }
 }
 
@@ -138,6 +139,7 @@ pub fn repl(){
                         repl
                     }
                     else {
+                        repl.input_buffer.push_str(&line);
                         let new_repl = eval(&repl).unwrap(); // TODO: Handle errors
                         print!("> ");
                         std::io::stdout().flush().unwrap();
