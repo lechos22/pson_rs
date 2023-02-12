@@ -43,7 +43,7 @@ impl InterpretLocks {
                     '\\' if locks.string_lock => locks.string_backslash_lock = !locks.string_backslash_lock,
                     '(' | '[' if !locks.string_lock => locks.brace_lock_count += 1,
                     ')' | ']' if !locks.string_lock => locks.brace_lock_count -= 1,
-                    _ => self.string_backslash_lock = false,
+                    _ => locks.string_backslash_lock = false,
                 }
                 locks
             })
