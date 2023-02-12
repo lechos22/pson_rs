@@ -106,4 +106,8 @@ fn schema_test(){
             _PizzaDto
         ]]
     }
+    let _size = SizeDto{
+        name: "S".to_string(),
+        price: 6.99
+    };
 }

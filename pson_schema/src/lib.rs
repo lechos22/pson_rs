@@ -76,9 +76,14 @@ fn pson_struct_tuple(token_trees: Vec<TokenTree>) -> PsonDef {
         kind.hash(&mut hasher);
         body.name.hash(&mut hasher);
         let name = format!("Pson{}", hasher.finish());
+        let base_type = match kind {
+            "array" => "Vec",
+            "option" => "Option",
+            _ => panic!()
+        };
         PsonDef {
             name: name.clone(),
-            body: Some(format!("type {}=Vec<{}>;", name.clone(), body.name)),
+            body: Some(format!("type {}={}<{}>;", name, base_type, body.name)),
             children: Some(vec![body]),
         }
     }
