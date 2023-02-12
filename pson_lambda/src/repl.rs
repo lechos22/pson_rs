@@ -2,20 +2,7 @@ use std::{error::Error, io::Write};
 
 use pson::Expr;
 
-struct Context {
-}
-
-impl Context {
-    fn new() -> Context {
-        Context {}
-    }
-}
-
-impl Clone for Context {
-    fn clone(&self) -> Context {
-        Context {}
-    }
-}
+use crate::context::Context;
 
 struct InterpretLocks {
     string_lock: bool,

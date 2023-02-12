@@ -3,6 +3,7 @@ use std::env::args;
 mod arg_parser;
 mod config;
 mod repl;
+mod context;
 
 fn main() {
     let arg_config = arg_parser::parse_args(&mut args().skip(1)).unwrap();
