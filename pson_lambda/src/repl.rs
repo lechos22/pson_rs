@@ -19,6 +19,7 @@ impl Clone for Context {
 
 struct InterpretLocks {
     string_lock: bool,
+    string_backslash_lock: bool,
     brace_lock_count: usize,
 }
 
@@ -26,6 +27,7 @@ impl InterpretLocks {
     fn new() -> InterpretLocks {
         InterpretLocks {
             string_lock: false,
+            string_backslash_lock: false,
             brace_lock_count: 0,
         }
     }
@@ -37,10 +39,11 @@ impl InterpretLocks {
             .chars()
             .fold(&mut self.clone(), |locks, c| {
                 match c {
-                    '"' => locks.string_lock = !locks.string_lock,
+                    '"' if !locks.string_backslash_lock => locks.string_lock = !locks.string_lock,
+                    '\\' if locks.string_lock => locks.string_backslash_lock = !locks.string_backslash_lock,
                     '(' | '[' if !locks.string_lock => locks.brace_lock_count += 1,
                     ')' | ']' if !locks.string_lock => locks.brace_lock_count -= 1,
-                    _ => (),
+                    _ => self.string_backslash_lock = false,
                 }
                 locks
             })
@@ -52,6 +55,7 @@ impl Clone for InterpretLocks {
     fn clone(&self) -> InterpretLocks {
         InterpretLocks {
             string_lock: self.string_lock,
+            string_backslash_lock: self.string_backslash_lock,
             brace_lock_count: self.brace_lock_count,
         }
     }
