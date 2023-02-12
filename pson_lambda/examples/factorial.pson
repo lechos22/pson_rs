@@ -1,0 +1,17 @@
+[$ factorial_recursion [fn recurse [x]
+    [? [== x 0]
+        1
+        [* x [recurse [- x 1]]]
+    ]
+]]
+
+[$ factorial_iteration [fn N [x]
+    [pipe
+        [range 1 [+ x 1]]
+        [reducer *]
+    ]
+]]
+
+[print [factorial_recursion 5]]
+[print [factorial_iteration 5]]
+
