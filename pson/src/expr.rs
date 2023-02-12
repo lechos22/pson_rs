@@ -4,7 +4,7 @@ use std::{collections::HashMap, error::Error};
 pub enum Expr {
     Null(),
     Boolean(bool),
-    Integer(i64),
+    Integer(i128),
     Float(f64),
     String(String),
     Array(Vec<Expr>),
@@ -19,7 +19,7 @@ impl Expr {
             Ok(Expr::Boolean(true))
         } else if s == "F" {
             Ok(Expr::Boolean(false))
-        } else if let Ok(n) = s.parse::<i64>() {
+        } else if let Ok(n) = s.parse::<i128>() {
             Ok(Expr::Integer(n))
         } else if let Ok(n) = s.parse::<f64>() {
             Ok(Expr::Float(n))
