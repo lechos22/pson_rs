@@ -5,7 +5,7 @@ use pson::{PsonParser, Expr};
 fn scan_for_constants(ast: Vec<Expr>) -> HashSet<String>{
     ast
         .iter()
-        .filter_map(|expr| expr.as_array())
+        .filter_map(Expr::as_array)
         .filter(|arr| arr.len() == 3)
         .filter_map(|arr|
             match &arr[0].as_string().map(|n| n == "$"){
