@@ -4,8 +4,7 @@ use std::io::Read;
 
 mod arg_parser;
 mod config;
-mod repl;
-mod context;
+mod interpreter;
 mod compiler;
 #[cfg(test)]
 mod tests;
@@ -15,7 +14,7 @@ fn main() {
     println!("{:?}", arg_config);
     let interactive = arg_config.interactive || arg_config.file.is_none();
     if interactive {
-        repl::repl();
+        interpreter::repl::repl();
     }
     else {
         let file_name = arg_config.file.unwrap();

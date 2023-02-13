@@ -2,7 +2,7 @@ use std::{error::Error, io::Write};
 
 use pson::Expr;
 
-use crate::context::Context;
+use crate::interpreter::context::Context;
 
 struct InterpretLocks {
     string_lock: bool,
