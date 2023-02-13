@@ -27,6 +27,48 @@ impl Expr {
             Ok(Expr::String(s.to_string()))
         }
     }
+    pub fn as_null(&self) -> Option<()> {
+        match self {
+            Expr::Null() => Some(()),
+            _ => None,
+        }
+    }
+    pub fn as_boolean(&self) -> Option<bool> {
+        match self {
+            Expr::Boolean(b) => Some(*b),
+            _ => None,
+        }
+    }
+    pub fn as_integer(&self) -> Option<i128> {
+        match self {
+            Expr::Integer(n) => Some(*n),
+            _ => None,
+        }
+    }
+    pub fn as_float(&self) -> Option<f64> {
+        match self {
+            Expr::Float(n) => Some(*n),
+            _ => None,
+        }
+    }
+    pub fn as_string(&self) -> Option<String> {
+        match self {
+            Expr::String(s) => Some(s.to_string()),
+            _ => None,
+        }
+    }
+    pub fn as_array(&self) -> Option<Vec<Expr>> {
+        match self {
+            Expr::Array(a) => Some(a.to_vec()),
+            _ => None,
+        }
+    }
+    pub fn as_map(&self) -> Option<HashMap<String, Expr>> {
+        match self {
+            Expr::Map(m) => Some(m.to_owned()),
+            _ => None,
+        }
+    }
 }
 
 impl Hash for Expr {
