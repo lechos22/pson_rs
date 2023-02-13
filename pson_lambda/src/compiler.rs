@@ -2,7 +2,7 @@ use std::{error::Error, collections::HashSet};
 
 use pson::{PsonParser, Expr};
 
-fn scan_for_constants(ast: Vec<Expr>) -> HashSet<String>{
+fn scan_for_constants(ast: &Vec<Expr>) -> HashSet<String>{
     ast
         .iter()
         .filter_map(Expr::as_array)
@@ -28,7 +28,7 @@ pub(crate) fn compile_module(code: &str) -> Result<(), Box<dyn Error>> {
     let ast = parser.get()?;
     println!("{}", ast.to_string());
     // search for global constants(functions included) defined as [$ name value]
-    let constants = scan_for_constants((&ast).as_array().unwrap());
+    let constants = scan_for_constants(&ast.as_array().unwrap());
     println!("module constants: {:?}", constants);
     Ok(())
 }
