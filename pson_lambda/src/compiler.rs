@@ -7,18 +7,18 @@ fn scan_for_constants(ast: Vec<Expr>) -> HashSet<String>{
         .iter()
         .filter_map(|expr| expr.as_array())
         .filter(|arr| arr.len() == 3)
-        .filter_map(|arr| {
+        .filter_map(|arr|
             match &arr[0].as_string().map(|n| n == "$"){
                 Some(true) => Some(arr),
                 _ => None,
             }
-        })
-        .filter_map(|arr| {
+        )
+        .filter_map(|arr|
             match &arr[1].as_string(){
                 Some(name) => Some(name.clone()),
                 None => None,
             }
-        })
+        )
         .collect()
 }
 
