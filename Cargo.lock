@@ -10,12 +10,5 @@ dependencies = [
 ]
 
 [[package]]
-name = "pson_lambda"
-version = "0.1.0"
-dependencies = [
- "pson",
-]
-
-[[package]]
 name = "pson_schema"
 version = "0.1.0"

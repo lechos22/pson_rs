@@ -1,2 +1,2 @@
 [workspace]
-members = ["pson", "pson_schema", "pson_lambda"]
+members = ["pson", "pson_schema"]
