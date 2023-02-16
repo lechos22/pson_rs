@@ -85,7 +85,7 @@ impl PsonParser<'_> {
                     top.push(frame.to_array()?)
                 },
             FrameKind::Map =>
-                if brace != ')' {
+                if brace != '}' {
                     Err("invalid pson")?
                 } else {
                     top.push(frame.to_map()?)
@@ -97,8 +97,8 @@ impl PsonParser<'_> {
         while let Some(c) = self.it.next() {
             match c {
                 '[' => self.frame_stack.push(Frame::new(FrameKind::Array)),
-                '(' => self.frame_stack.push(Frame::new(FrameKind::Map)),
-                ']' | ')' => self.close_frame(c)?,
+                '{' => self.frame_stack.push(Frame::new(FrameKind::Map)),
+                ']' | '}' => self.close_frame(c)?,
                 ' ' | '\t' | '\n' | '\r' => self.process_buffer()?,
                 '"' => self.scan_quoted_string()?,
                 _ => self.buffer.push(c)
